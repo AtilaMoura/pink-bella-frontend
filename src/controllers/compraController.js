@@ -36,9 +36,25 @@ export async function atualizarStatusCompra(compraId, novoStatus) {
 
   try {
     const response = await api.put(url, payload); // Usa as variáveis url e payload
+    console.log('Resposta do servidor:', response.data);
     return response.data;
   } catch (error) {
     console.error(`Erro ao atualizar status da compra ${compraId}:`, error.response ? error.response.data : error.message);
     throw error;
   }
 }
+
+export async function atualizarRastreio () {
+  try {
+    const url = '/melhor-envio/rastreios/atualizar'
+    const response = await api.get(url);
+    const data = await response.data;
+    if (data.sucesso) {
+      console.log('Rastreio atualizado com sucesso!');
+    } else {
+      console.error('Erro ao atualizar rastreio:', data);
+    }
+  } catch (error) {
+    console.error('Erro ao atualizar rastreio:', error);
+  }
+};
