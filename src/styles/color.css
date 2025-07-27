@@ -1,0 +1,63 @@
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  text-transform: capitalize;
+}
+
+/* Status específicos */
+.status-pendente {
+  background-color: #63663A;
+  color: #ffff;
+  text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;
+}
+
+.status-pago {
+  background-color: #4E913A;
+  color: #ffff;
+  text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;
+}
+
+.status-aguardando-etiqueta {
+  background-color: #663A5E;
+  color: #ffff;
+  text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;
+}
+
+.status-etiqueta-gerada {
+  background-color: #E610C1;
+  color: #ffff;
+  text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;
+}
+
+.status-postado {
+  background-color: #663D3B;
+  color: #ffff;
+  text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;
+}
+
+.status-entregue {
+  background-color: #D6E610;
+  color: #ffff;
+  text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;
+}
+
+.status-finalizado {
+  background-color: #41E610;
+  color: #ffff;
+  text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;
+}
+
+.status-cancelado {
+  background-color: #E60B00;
+  color: #ffff;
+  text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;
+}
+
+.status-default {
+  background-color: #000000;
+  color: #ffff;
+  text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;
+}

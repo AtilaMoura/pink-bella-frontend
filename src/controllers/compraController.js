@@ -58,3 +58,58 @@ export async function atualizarRastreio () {
     console.error('Erro ao atualizar rastreio:', error);
   }
 };
+
+// Buscar compra pelo ID
+export async function buscarCompraPorId(id) {
+  try {
+    const response = await api.get(`/compras/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao buscar compra por ID:", error);
+    throw error;
+  }
+}
+
+// Listar clientes
+export async function listarClientes() {
+  try {
+    const response = await api.get('/clientes');
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao listar clientes:', error);
+    throw error;
+  }
+}
+
+// Listar produtos
+export async function listarProdutos() {
+  try {
+    const response = await api.get('/produtos');
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao listar produtos:', error);
+    throw error;
+  }
+}
+
+// Calcular frete
+export async function calcularFrete(payload) {
+  try {
+    const response = await api.post('/frete/calcular', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao calcular frete:', error);
+    throw error;
+  }
+}
+
+// Atualizar compra
+export async function atualizarCompra(id, payload) {
+  try {
+    const response = await api.put(`/compras/${id}`, payload);
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao atualizar compra:', error);
+    throw error;
+  }
+}

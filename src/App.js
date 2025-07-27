@@ -11,6 +11,7 @@ import Clientes from './pages/Clientes';
 import NovoCliente from './pages/Clientes/novo'; // Este componente é usado para CRIAR e EDITAR
 import Compras from './pages/Compras';
 import NovaCompra from './pages/Compras/novo';
+import EditarCompra from './pages/Compras/editarcompra';
 
 // >>>>> IMPORTAÇÃO DA NOVA PÁGINA DE FRETE <<<<<
 import FretePage from './pages/Frete'; // Importa a página de frete
@@ -35,6 +36,7 @@ function App() {
           {/* Rotas de Compras */}
           <Route path="/compras" element={<Compras />} />
           <Route path="/compras/novo/:clienteId" element={<NovaCompra />} />
+          <Route path="/compras/editar/:id" element={<EditarCompra />} />
 
           {/* >>>>> NOVA ROTA PARA A PÁGINA DE FRETE <<<<< */}
           <Route path="/frete" element={<FretePage />} />

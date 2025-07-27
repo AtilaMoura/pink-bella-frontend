@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import { format } from "date-fns";
+import '../../styles/color.css';
 import {
   listarCompras,
   atualizarStatusCompra,
@@ -13,6 +15,9 @@ import {
 } from "../../controllers/freteController";
 
 function Compras() {
+
+  const navigate = useNavigate();
+
   const [compras, setCompras] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,6 +28,7 @@ function Compras() {
   const [verificandoPagamento, setVerificandoPagamento] = useState(false);
   const [selecionadas, setSelecionadas] = useState([]);
   const [filtroStatus, setFiltroStatus] = useState("Todos");
+  const [filtroTexto, setFiltroTexto] = useState("");
   const [expanded, setExpanded] = useState({});
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [printUrl, setPrintUrl] = useState("");
@@ -61,7 +67,7 @@ function Compras() {
         prev.map((c) => (c.id === compraId ? atualizada : c))
       );
       setMessage(`Compra ${compraId} marcada como 'Pago'.`);
-      await carregarSaldo(); // Atualiza o saldo após marcar como pago
+      await carregarSaldo(); 
       await carregarCompras();
     } catch (err) {
       setError(`Erro ao marcar compra como paga.`);
@@ -71,12 +77,12 @@ function Compras() {
   const handleCancelarCompra = async (compraId) => {
     if (window.confirm("Tem certeza que deseja cancelar esta compra?")) {
       try {
-        const atualizada = await atualizarStatusCompra(compraId, "Cancelada");
+        const atualizada = await atualizarStatusCompra(compraId, "Cancelado");
         setCompras((prev) =>
           prev.map((c) => (c.id === compraId ? atualizada : c))
         );
         await carregarCompras();
-        setMessage(`Compra ${compraId} cancelada com sucesso.`);
+        setMessage(`Compra ${compraId} cancelado com sucesso.`);
       } catch (err) {
         setError(`Erro ao cancelar compra.`);
       }
@@ -85,15 +91,13 @@ function Compras() {
 
   const handleGerarEtiquetaIndividual = async (compra) => {
     try {
-      // Primeiro, atualiza o status para 'Aguardando Etiqueta' se ainda não estiver
       if (compra.status_compra !== "Aguardando Etiqueta") {
         await atualizarStatusCompra(compra.id, "Aguardando Etiqueta");
       }
-      // Em seguida, tenta gerar a etiqueta
       if (compra.codigo_etiqueta) {
         await gerarEtiqueta([compra.codigo_etiqueta]);
         setMessage("Etiqueta gerada com sucesso!");
-        carregarCompras(); // Recarrega para refletir o status 'Etiqueta PDF Gerada'
+        carregarCompras(); 
       } else {
         alert("Código de etiqueta não disponível para esta compra.");
       }
@@ -151,7 +155,6 @@ function Compras() {
           setVerificandoPagamento(false);
           try {
             await comprarEtiqueta();
-            // Após comprar, as etiquetas já devem ter seus códigos. Recarrega as compras para ter os dados atualizados.
             await carregarCompras(); 
             setMessage("Etiquetas compradas com sucesso! Agora você pode gerá-las.");
             setPagamentoPix(null);
@@ -165,9 +168,23 @@ function Compras() {
     }
   }, [verificandoPagamento, frete]);
 
-  const comprasFiltradas = compras.filter((c) =>
-    filtroStatus === "Todos" ? true : c.status_compra === filtroStatus
+  const comprasFiltradas = compras.filter((c) => {
+  const statusMatch = filtroStatus === "Todos" || c.status_compra === filtroStatus;
+  const textoMatch = filtroTexto === "" || (
+    (c.cliente && c.cliente.nome && c.cliente.nome.toLowerCase().includes(filtroTexto.toLowerCase())) ||
+    (c.cliente && c.cliente.cpf && c.cliente.cpf.includes(filtroTexto)) ||
+    (c.id && c.id.toString().includes(filtroTexto))
   );
+  return statusMatch && textoMatch;
+});
+
+  const statusCounts = compras.reduce((acc, compra) => {
+    if (!acc[compra.status_compra]) {
+      acc[compra.status_compra] = 0;
+    }
+    acc[compra.status_compra]++;
+    return acc;
+  }, {});
 
   const handleExpand = (id) => {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -242,52 +259,64 @@ function Compras() {
     }
   };
 
+  const statusToClass = {
+"Pendente": "status-pendente",
+"Pago": "status-pago",
+"Aguardando Etiqueta": "status-aguardando-etiqueta",
+"Etiqueta PDF Gerada": "status-etiqueta-gerada",
+"Postado": "status-postado",
+"Entregue": "status-entregue",
+"Finalizado": "status-finalizado",
+"Cancelado": "status-cancelado"
+};
+
   return (
-    <div className="container mt-4">
+    <div style={{ backgroundColor: "#FFC5C5" }} className="p-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2>Lista de Compras</h2>
+        <div>
+          {Object.keys(statusCounts).map((status) => (
+            status !== "Cancelado" && (
+              <span key={status} className={`badge me-2 ${statusToClass[status]}`}>
+                {status}: {statusCounts[status]}
+              </span>
+            )
+          ))}
+          {filtroTexto && statusCounts["Cancelado"] && (
+            <span className="badge bg-light me-2">
+              Cancelado: {statusCounts["Cancelado"]}
+            </span>
+          )}
+        </div>
+        <div className="d-flex gap-4">
+          <div className="bg-light border px-3 py-2 rounded text-center">
+            <strong>Saldo Melhor Envio:</strong>
+            <br />R$ {saldo.toFixed(2).replace(".", ",")}
+          </div>
+          <div className="bg-light border px-3 py-2 rounded text-center">
+            <strong>Carrinho Melhor Envio:</strong>
+            <br />R$ {frete.toFixed(2).replace(".", ",")}
+          </div>
+          {frete > 0 && (
+            <button
+              className="btn btn-success"
+              onClick={abrirPagamentoPix}
+              disabled={verificandoPagamento}
+            >
+              Pagar Carrinho Melhor Envio
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="d-flex gap-4 mb-3">
-        <div className="bg-light border px-3 py-2 rounded text-center">
-          <strong>Saldo Melhor Envio:</strong>
-          <br />R$ {saldo.toFixed(2).replace(".", ",")}
-        </div>
-        <div className="bg-light border px-3 py-2 rounded text-center">
-          <strong>Carrinho Melhor Envio:</strong>
-          <br />R$ {frete.toFixed(2).replace(".", ",")}
-        </div>
-        {frete > 0 && (
-          <button
-            className="btn btn-success"
-            onClick={abrirPagamentoPix}
-            disabled={verificandoPagamento}
-          >
-            Pagar Carrinho Melhor Envio
-          </button>
-        )}
+      <div className="mb-3">
+        <input
+          type="text"
+          className="form-control"
+          placeholder="Filtrar por Nome do Cliente, CPF ou ID do Cliente"
+          value={filtroTexto}
+          onChange={(e) => setFiltroTexto(e.target.value)}
+        />
       </div>
-
-      {pagamentoPix && (
-        <div className="alert alert-info">
-          <strong>Valor PIX: R$ {pagamentoPix.valor}</strong>
-          <br />
-          <img
-            src={pagamentoPix.urlQrCodeImagem}
-            alt="QR Code PIX"
-            style={{ width: "200px", marginTop: 10 }}
-          />
-          <br />
-          <button
-            className="btn btn-outline-primary btn-sm mt-2"
-            onClick={() =>
-              navigator.clipboard.writeText(pagamentoPix.codigoParaCopiar)
-            }
-          >
-            Copiar código PIX
-          </button>
-        </div>
-      )}
 
       <div className="mb-3">
         <label>Filtrar por Status:</label>
@@ -301,7 +330,9 @@ function Compras() {
           <option>Pago</option>
           <option>Aguardando Etiqueta</option>
           <option>Etiqueta PDF Gerada</option>
-          <option>Cancelada</option>
+          <option>Postado</option>
+          <option>Entregue</option>
+          <option>Cancelado</option>
         </select>
       </div>
 
@@ -355,23 +386,11 @@ function Compras() {
                   )}
                   </td>
                   <td>
-                    <span
-                      className={`badge px-2 py-1 ${
-                        compra.status_compra === "Pendente"
-                          ? "bg-warning text-dark"
-                          : compra.status_compra === "Pago"
-                          ? "bg-success"
-                          : compra.status_compra === "Aguardando Etiqueta"
-                          ? "bg-info text-dark"
-                          : compra.status_compra === "Etiqueta PDF Gerada"
-                          ? "bg-primary"
-                          : compra.status_compra === "Cancelada"
-                          ? "bg-danger"
-                          : "bg-secondary"
-                      }`}
-                    >
-                      {compra.status_compra}
-                    </span>
+
+
+<span className={`badge ${statusToClass[compra.status_compra] || "status-default"}`}>
+  {compra.status_compra}
+</span>
                   </td>
                   <td>
                     <button
@@ -389,6 +408,7 @@ function Compras() {
       <div className="p-4 border rounded-lg bg-gray-50 shadow-sm">
         <h5 className="text-lg font-semibold mb-2">
           🛍️ Detalhes da Compra #{compra.id}
+          {console.log(compra)}
         </h5>
 
         <p className="mb-1">
@@ -406,12 +426,14 @@ function Compras() {
         <div className="mb-2">
           <strong>🛒 Itens:</strong>
           <ul className="list-disc list-inside ml-4">
-            {compra.itens?.map((item, idx) => (
-              <li key={idx}>
-                {item.quantidade}x {item.produto?.nome} (R$ {item.preco_unitario_no_momento_da_compra?.toFixed(2).replace(".", ",")})
-              </li>
-            ))}
-          </ul>
+  {compra.itens?.map((item, idx) => {
+    return (
+      <li key={idx}>
+        {item.quantidade}x {item.produto?.nome} (R$ {item.subtotal_item?.toFixed(2).replace(".", ",")})
+      </li>
+    );
+  })}
+</ul>
         </div>
 
         {compra.frete && (
@@ -426,6 +448,40 @@ function Compras() {
                 <a href={`${compra.codigo_rastreio}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
                   {compra.codigo_rastreio}
                 </a>
+                <button
+                className="px-3 py-1 text-sm btn btn-outline-primary rounded"
+          onClick={() => {
+            const texto = `Passando para avisar que em breve, seu pedido estará chegando até você. 🚚✨
+
+📍 Você pode acompanhar a entrega aqui: ${compra.codigo_rastreio}
+
+Qualquer dúvida, estou à disposição! Obrigada por escolher a Pink Bella. 💕`;
+            navigator.clipboard.writeText(texto);
+            alert("Mensagem copiada para a área de transferência!");
+          }}
+        >
+          Copiar Mensagem
+        </button>
+        <button
+  className="px-3 py-1 text-sm btn btn-outline-primary rounded"
+  onClick={() => {
+    const numero = compra.cliente.telefone.replace(/\D/g, ''); // Remove tudo que não for número
+    console.log(numero);
+
+    const texto = `Olá ${compra.cliente.nome}, tudo bem? 💖
+
+Passando para avisar que em breve, seu pedido estará chegando até você. 🚚✨
+
+📍 Você pode acompanhar a entrega aqui: ${compra.codigo_rastreio}
+
+Qualquer dúvida, estou à disposição! Obrigada por escolher a Pink Bella. 💕`;
+
+    const url = `https://web.whatsapp.com/send?phone=55${numero}&text=${encodeURIComponent(texto)}`;
+    window.open(url, "_blank");
+  }}
+>
+  Enviar WhatsApp
+</button>
               </>
             )}
           </div>
@@ -459,7 +515,7 @@ function Compras() {
             </button>
           )}
 
-          {compra.status_compra !== "Cancelada" && (
+          {compra.status_compra !== "Cancelado" && (
             <button
               className="px-3 py-1 text-sm btn btn-outline-danger rounded hover:bg-red-700 "
               onClick={() => handleCancelarCompra(compra.id)}
@@ -467,6 +523,15 @@ function Compras() {
               ❌ Cancelar Compra
             </button>
           )}
+
+          {!compra.codigo_etiqueta && (
+  <button
+    className="px-3 py-1 text-sm btn btn-outline-secondary rounded"
+      onClick={() => navigate(`/Compras/editar/${compra.id}`)}
+  >
+    Editar
+  </button>
+)}
 
           <button
             className="px-3 py-1 text-sm btn btn-outline-primary rounded "
