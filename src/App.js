@@ -1,6 +1,6 @@
-// src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { CompraProvider } from './pages/Compras/CompraContext'; // Importe o CompraProvider
 
 // Importe o componente Navbar (certifique-se de que o caminho está correto)
 import Navbar from './components/Navbar'; 
@@ -8,13 +8,12 @@ import Navbar from './components/Navbar';
 // Importe suas páginas existentes
 import Home from './pages/Home';
 import Clientes from './pages/Clientes';
-import NovoCliente from './pages/Clientes/novo'; // Este componente é usado para CRIAR e EDITAR
+import NovoCliente from './pages/Clientes/novo'; 
 import Compras from './pages/Compras';
 import NovaCompra from './pages/Compras/novo';
 import EditarCompra from './pages/Compras/editarcompra';
-
-// >>>>> IMPORTAÇÃO DA NOVA PÁGINA DE FRETE <<<<<
-import FretePage from './pages/Frete'; // Importa a página de frete
+import DetalherCompra from './pages/Compras/detalhecompra';
+import FretePage from './pages/Frete'; 
 
 function App() {
   return (
@@ -24,32 +23,35 @@ function App() {
 
       {/* Um container para o conteúdo principal de cada página, para espaçamento */}
       <div className="container mt-4"> 
-        <Routes>
-          {/* Rota para a página inicial */}
-          <Route path="/" element={<Home />} />
+        <CompraProvider> {/* Envolva o Routes com o CompraProvider */}
+          <Routes>
+            {/* Rota para a página inicial */}
+            <Route path="/" element={<Home />} />
 
-          {/* Rotas de Clientes */}
-          <Route path="/clientes" element={<Clientes />} />
-          <Route path="/clientes/novo" element={<NovoCliente />} />
-          <Route path="/clientes/editar/:id" element={<NovoCliente />} />
-          
-          {/* Rotas de Compras */}
-          <Route path="/compras" element={<Compras />} />
-          <Route path="/compras/novo/:clienteId" element={<NovaCompra />} />
-          <Route path="/compras/editar/:id" element={<EditarCompra />} />
+            {/* Rotas de Clientes */}
+            <Route path="/clientes" element={<Clientes />} />
+            <Route path="/clientes/novo" element={<NovoCliente />} />
+            <Route path="/clientes/editar/:id" element={<NovoCliente />} />
+            
+            {/* Rotas de Compras */}
+            <Route path="/compras" element={<Compras />} />
+            <Route path="/compras/novo/:clienteId" element={<NovaCompra />} />
+            <Route path="/compras/editar/:id" element={<EditarCompra />} />
+            <Route path="/compras/detalhe/:id" element={<DetalherCompra/>} />
 
-          {/* >>>>> NOVA ROTA PARA A PÁGINA DE FRETE <<<<< */}
-          <Route path="/frete" element={<FretePage />} />
+            {/* >>>>> NOVA ROTA PARA A PÁGINA DE FRETE <<<<< */}
+            <Route path="/frete" element={<FretePage />} />
 
-          {/* Rota para qualquer URL não encontrada (página 404) */}
-          <Route path="*" element={
-            <div className="container mt-5 text-center">
-              <h1>404 - Página não encontrada</h1>
-              <p>A URL que você tentou acessar não existe.</p>
-              <a href="/clientes" className="btn btn-primary mt-3">Voltar para a Lista de Clientes</a>
-            </div>
-          } />
-        </Routes>
+            {/* Rota para qualquer URL não encontrada (página 404) */}
+            <Route path="*" element={ 
+              <div className="container mt-5 text-center">
+                <h1>404 - Página não encontrada</h1>
+                <p>A URL que você tentou acessar não existe.</p>
+                <a href="/clientes" className="btn btn-primary mt-3">Voltar para a Lista de Clientes</a>
+              </div>
+            } />
+          </Routes>
+        </CompraProvider>
       </div>
     </Router>
   );

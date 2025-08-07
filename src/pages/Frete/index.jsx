@@ -1,156 +1,155 @@
-// src/pages/Frete/index.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { calcularFrete } from '../../controllers/freteController';
 import MostrarEndereco from '../../components/MostrarEndereco';
-import { Link } from 'react-router-dom';
+import { listarClientes } from "../../controllers/clienteController";
 
 function FretePage() {
+  const [nomeCliente, setNomeCliente] = useState('');
   const [cepDestino, setCepDestino] = useState('');
-  const [itensFrete, setItensFrete] = useState([
-    { produto_id: 1, quantidade: 1 }
-  ]);
+  const [produtos, setProdutos] = useState([{ nome: '', valor: '' }]);
+  const [fretes, setFretes] = useState([]);
+  const [freteSelecionado, setFreteSelecionado] = useState(null);
+  const [endereco, setEndereco] = useState('');
+  const [descontoProduto, setDescontoProduto] = useState('');
+  const [descontoFrete, setDescontoFrete] = useState('');
+  const [mensagem, setMensagem] = useState('');
+  const [enderecoFrete, setEnderecoFrete] = useState(null); 
   const [resultadoFrete, setResultadoFrete] = useState(null);
-  const [enderecoFrete, setEnderecoFrete] = useState(null); // Vai guardar o endereço retornado do backend
-  const [erroFrete, setErroFrete] = useState('');
-  const [loadingFrete, setLoadingFrete] = useState(false);
+  const [clientes, setClientes] = useState([]);
 
-  const handleCalcularFrete = async (e) => {
-    e.preventDefault();
+  const carregarClientes = async () => {
+      try {
+        const dados = await listarClientes();
+        setClientes(dados);
+        console.log(clientes)
+      } catch (error) {
+        console.error("Erro ao carregar clientes:", error);
+        alert("Não foi possível carregar a lista de clientes.");
+      }
+    };
 
-    const cleanedCep = cepDestino.replace(/\D/g, '');
-    console.log('CEP de destino limpo a ser enviado para o backend:', cleanedCep);
-    console.log('Itens a serem enviados para o backend:', itensFrete);
+  useEffect(() => {
+      carregarClientes();
+    }, []);
 
-    if (!cleanedCep || cleanedCep.length !== 8) {
-      const errorMessage = 'Por favor, insira um CEP de destino válido (8 dígitos numéricos).';
-      setErroFrete(errorMessage);
-      setResultadoFrete(null);
-      setEnderecoFrete(null);
-      console.log('Erro de validação do CEP no frontend:', errorMessage);
-      return;
-    }
+  const handleProdutoChange = (index, field, value) => {
+    const novosProdutos = [...produtos];
+    novosProdutos[index][field] = value;
+    setProdutos(novosProdutos);
+  };
 
-    setLoadingFrete(true);
-    setErroFrete('');
-    setResultadoFrete(null);
-    setEnderecoFrete(null);
+  const adicionarProduto = () => {
+    setProdutos([...produtos, { nome: '', valor: '' }]);
+  };
 
+  const calFrete = async () => {
     try {
-      console.log('Chamando calcularFrete no freteController...');
-      const response = await calcularFrete(cleanedCep, itensFrete);
-      
-      console.log('Resposta COMPLETA recebida do backend:', response);
-      console.log('Opções de frete (response.opcoes_frete):', response.opcoes_frete);
-      console.log('Endereço de destino (response.enderecoDestino):', response.enderecoDestino); // Esperando vir do backend
-
-      if (response && response.opcoes_frete) {
+      // eslint-disable-next-line no-undef
+      const response = await calcularFrete(cepDestino, [
+  { produto_id: 1, quantidade: 1 }
+  
+]);
+console.log('resposta ----> '+response.enderecoDestino)
+  if (response && response.opcoes_frete) {
         setResultadoFrete(response.opcoes_frete);
       } else {
         console.warn('Resposta do backend não contém "opcoes_frete" ou é nula/indefinida.');
         setResultadoFrete([]);
       }
 
-      // Agora, esperamos que 'enderecoDestino' venha do backend
-      if (response && response.enderecoDestino) {
-        setEnderecoFrete(response.enderecoDestino);
+  if (response && response.opcoes_frete) {
+        setFretes(response.opcoes_frete);
+        console.log(fretes)
       } else {
-        console.warn('Resposta do backend não contém "enderecoDestino" ou é nula/indefinida.');
-        setEnderecoFrete(null);
+        console.warn('Resposta do backend não contém "opcoes_frete" ou é nula/indefinida.');
+        setResultadoFrete([]);
       }
-
+      console.log(response.opcoes_frete)
+      setEnderecoFrete(response.enderecoDestino)
+      setEndereco(`${response.enderecoDestino.logradouro} – Bairro ${response.enderecoDestino.bairro}\nCEP: ${response.enderecoDestino.cep} – ${response.enderecoDestino.cidade}, ${response.enderecoDestino.estado}`);
     } catch (error) {
-      console.error('Erro ao calcular frete no frontend (catch block):', error);
-      const errorMessage = error.response?.data?.message || 'Erro ao calcular frete. Verifique o CEP e os itens.';
-      setErroFrete(errorMessage);
-      console.log('Mensagem de erro definida para exibição:', errorMessage);
-    } finally {
-      setLoadingFrete(false);
-      console.log('Finalizado o processo de cálculo de frete.');
+      console.log('Erro ao calcular o frete');
     }
   };
 
-  const handleAddItem = () => {
-    setItensFrete([...itensFrete, { produto_id: '', quantidade: '' }]);
-  };
+  const gerarTextoPedido = () => {
+  if (!nomeCliente) {
+    alert("Preencha o nome do cliente.");
+    return;
+  }
 
-  const handleItemChange = (index, field, value) => {
-    const newItens = [...itensFrete];
-    newItens[index][field] = value;
-    setItensFrete(newItens);
-  };
+  if (produtos.length === 0) {
+    alert("Adicione ao menos um produto.");
+    return;
+  }
 
-  const handleRemoveItem = (indexToRemove) => {
-    const filteredItens = itensFrete.filter((_, index) => index !== indexToRemove);
-    setItensFrete(filteredItens);
-  };
+  for (const p of produtos) {
+    if (!p.nome || !p.valor) {
+      alert("Todos os produtos precisam ter nome e valor.");
+      return;
+    }
+  }
+
+  if (!freteSelecionado || !freteSelecionado.preco_frete) {
+    alert("Selecione uma opção de frete.");
+    return;
+  }
+
+  if (!endereco) {
+    alert("Preencha o endereço de destino.");
+    return;
+  }
+
+  const totalProdutos = produtos.reduce((acc, p) => acc + parseFloat(p.valor || 0), 0);
+
+  const valorDescontoProduto = descontoProduto.includes('%')
+    ? (parseFloat(descontoProduto.replace('%', '')) / 100) * totalProdutos
+    : parseFloat(descontoProduto || 0);
+
+  const valorFreteOriginal = parseFloat(freteSelecionado?.preco_frete || 0);
+const valorFrete = Math.round(valorFreteOriginal); // arredondamento padrão
+  const valorDescontoFrete = descontoFrete.includes('%')
+    ? (parseFloat(descontoFrete.replace('%', '')) / 100) * valorFrete
+    : parseFloat(descontoFrete || 0);
+
+  const total = totalProdutos - valorDescontoProduto + freteSelecionado.preco_frete - valorDescontoFrete;
+
+  const texto = `📦 Pedido – ${nomeCliente} (Atualizado)
+
+Produto:
+${produtos.map(p => `- ${p.nome} – R$${parseFloat(p.valor).toFixed(2)}`).join('\n')}
+${valorDescontoProduto > 0 ? `🎁 Desconto nos produtos: -R$${valorDescontoProduto.toFixed(2)}` : ''}
+
+Frete (${freteSelecionado?.nome_transportadora || 'Não selecionado'}): R$${Math.round(freteSelecionado.preco_frete).toFixed(2)}
+${valorDescontoFrete > 0 ? `🎁 Desconto no frete: -R$${valorDescontoFrete.toFixed(2)}` : ''}
+📍 Prazo de entrega: ${freteSelecionado?.prazo_dias_uteis + 1 || '-'} dias úteis
+📫 Endereço de destino:
+${endereco}
+
+💰 Total a pagar: R$${Math.round(total.toFixed(2))}
+
+📌 Chave Pix (Telefone): (11) 97844-5381
+📌 Nome: Amanda Batista da Silva – Pink Bella`;
+
+  setMensagem(texto);
+  navigator.clipboard.writeText(texto);
+};
+
 
   return (
-    <div className="container mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Calculadora de Frete</h2>
-        <Link to="/" className="btn btn-secondary">Voltar para Home</Link>
+    <div className="container">
+      <h2 className="mb-3">Gerar Pedido com Frete</h2>
+      <div className="row">
+      
+      <div className="col-md-4">
+        
+      <div className="mb-3">
+        <label>CEP de Destino:</label>
+        <input type="text" className="form-control" value={cepDestino} onChange={e => setCepDestino(e.target.value)} />
+        <button className="btn btn-primary mt-2" onClick={calFrete}>Calcular Frete</button>
       </div>
 
-      <div className="card shadow-sm text-start mb-5">
-        <div className="card-header bg-primary text-white">
-          <h5 className="mb-0">Informações para Cálculo</h5>
-        </div>
-        <div className="card-body">
-          <form onSubmit={handleCalcularFrete}>
-            <div className="mb-3">
-              <label htmlFor="cepDestino" className="form-label">CEP de Destino:</label>
-              <input
-                type="text"
-                className="form-control"
-                id="cepDestino"
-                placeholder="Apenas números, ex: 55190052"
-                value={cepDestino}
-                onChange={(e) => setCepDestino(e.target.value.replace(/\D/g, ''))}
-                maxLength="8"
-              />
-              {erroFrete && <div className="text-danger mt-1">{erroFrete}</div>}
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label">Itens (Produto ID e Quantidade):</label>
-              {itensFrete.map((item, index) => (
-                <div key={index} className="input-group mb-2">
-                  <input
-                    type="number"
-                    className="form-control"
-                    placeholder="ID do Produto"
-                    value={item.produto_id}
-                    onChange={(e) => handleItemChange(index, 'produto_id', e.target.value)}
-                    min="1"
-                  />
-                  <input
-                    type="number"
-                    className="form-control"
-                    placeholder="Quantidade"
-                    value={item.quantidade}
-                    onChange={(e) => handleItemChange(index, 'quantidade', e.target.value)}
-                    min="1"
-                  />
-                  <button type="button" className="btn btn-outline-danger" onClick={() => handleRemoveItem(index)}>
-                    Remover
-                  </button>
-                </div>
-              ))}
-              <button type="button" className="btn btn-outline-secondary btn-sm" onClick={handleAddItem}>
-                Adicionar Item
-              </button>
-            </div>
-
-            <button type="submit" className="btn btn-primary" disabled={loadingFrete}>
-              {loadingFrete ? 'Calculando...' : 'Calcular Frete'}
-            </button>
-          </form>
-
-          {resultadoFrete && ( 
-            <div className="mt-4 p-3 border rounded bg-light">
-              <h4>Resultados do Frete</h4>
-              
-              {/* Exibição do endereço de destino */}
+      {/* Exibição do endereço de destino */}
               {enderecoFrete ? ( // Renderiza o MostrarEndereco APENAS se enderecoFrete tiver valor
                 <>
                   <h5 className="mt-3">Endereço de Destino:</h5>
@@ -161,29 +160,118 @@ function FretePage() {
                 <p>Endereço de destino não disponível na resposta do servidor.</p> 
               )}
 
-              <h5 className="mt-3">Opções de Frete:</h5>
-              {resultadoFrete.length > 0 ? (
-                <ul className="list-group">
-                  {resultadoFrete.map((frete, index) => (
-                    <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                      <div>
-                        <strong>{frete.servico}</strong> ({frete.nome_transportadora || 'N/A'})
+
+
+              {fretes.length > 0 && (
+  <div className="mb-3">
+    <label className="form-label">Escolher Frete:</label>
+    <div className="d-flex flex-column gap-2">
+      {fretes.map((f, i) => (
+        <div
+          key={i}
+          onClick={() => setFreteSelecionado(f)}
+          className={`p-3 border rounded cursor-pointer ${
+            freteSelecionado === f ? 'border-primary border-3 bg-light' : 'border-secondary'
+          }`}
+        >
+          <div>
+                        <strong>{f.servico}</strong> ({f.nome_transportadora || 'N/A'})
                         <br />
-                        <small>Prazo: {frete.prazo_dias_uteis} dias úteis</small>
+                        <small>Prazo: {f.prazo_dias_uteis + 1} dias úteis</small>
                       </div>
                       <span className="badge bg-primary rounded-pill">
-                        R$ {frete.preco_frete.toFixed(2).replace('.', ',')}
+                        R$ {Math.round(f.preco_frete).toFixed(2).replace('.', ',')}
                       </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>Nenhuma opção de frete encontrada para este CEP e itens.</p>
-              )}
-            </div>
-          )}
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+</div>
+<div className="col-md-8">
+  <div className="mb-3">
+    
+      <div>
+        <label htmlFor={`cliente_`} className="form-label">Cliente</label>
+        <select
+  name="cliente_id"
+  className="form-select"
+  onChange={e => {
+    const clienteId = e.target.value;
+    const cliente = clientes.find(c => c.id === parseInt(clienteId));
+    if (cliente) {
+      setNomeCliente(cliente.nome); // Preenche nome
+      setCepDestino(cliente.endereco?.cep || ''); // Preenche CEP
+    } else {
+      // Limpa se desmarcar
+      setNomeCliente('');
+      setCepDestino('');
+    }
+  }}
+>
+  <option value="">Selecione um Cliente</option>
+  {clientes.map(cliente => (
+    <option key={cliente.id} value={cliente.id}>
+      {cliente.nome}
+    </option>
+  ))}
+</select>
+      </div>
+    
+        <label>Nome do Cliente:</label>
+        <input type="text" className="form-control" value={nomeCliente} onChange={e => setNomeCliente(e.target.value)} />
+      </div>
+      <h5>Produtos</h5>
+      {produtos.map((produto, index) => (
+        <div key={index} className="row mb-2">
+          <div className="col">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Nome do Produto"
+              value={produto.nome}
+              onChange={e => handleProdutoChange(index, 'nome', e.target.value)}
+            />
+          </div>
+          <div className="col">
+            <input
+              type="number"
+              className="form-control"
+              placeholder="Valor"
+              value={produto.valor}
+              onChange={e => handleProdutoChange(index, 'valor', e.target.value)}
+            />
+          </div>
+        </div>
+      ))}
+      <button className="btn btn-secondary mb-3" onClick={adicionarProduto}>Adicionar Produto</button>
+
+      <div className="row mb-3">
+        <div className="col">
+          <label>Desconto nos Produtos (R$ ou %):</label>
+          <input type="text" className="form-control" value={descontoProduto} onChange={e => setDescontoProduto(e.target.value)} />
+        </div>
+        <div className="col">
+          <label>Desconto no Frete (R$ ou %):</label>
+          <input type="text" className="form-control" value={descontoFrete} onChange={e => setDescontoFrete(e.target.value)} />
         </div>
       </div>
+
+      <button className="btn btn-success" onClick={gerarTextoPedido}>Gerar Texto do Pedido</button>
+
+      {mensagem && (
+  <div className="alert alert-info mt-4" style={{ whiteSpace: 'pre-line', position: 'relative' }}>
+    <button
+      className="btn btn-sm btn-secondary position-absolute top-0 end-0 m-2"
+      onClick={() => navigator.clipboard.writeText(mensagem)}
+    >
+      Copiar
+    </button>
+    {mensagem}
+  </div>
+)}
+</div>
+</div>
     </div>
   );
 }

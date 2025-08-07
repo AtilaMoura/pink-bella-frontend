@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
+import { CompraContext } from './CompraContext';
 import { useNavigate } from 'react-router-dom';
 import { format } from "date-fns";
 import '../../styles/color.css';
@@ -16,6 +17,8 @@ import {
 
 function Compras() {
 
+ const { comprasT, setComprasT, carregarComprasT } = useContext(CompraContext);
+  
   const navigate = useNavigate();
 
   const [compras, setCompras] = useState([]);
@@ -33,16 +36,7 @@ function Compras() {
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [printUrl, setPrintUrl] = useState("");
 
-  const carregarCompras = async () => {
-    try {
-      const dados = await listarCompras();
-      setCompras(dados);
-    } catch {
-      setError("Erro ao carregar compras.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  
 
   const carregarSaldo = async () => {
     try {
@@ -55,10 +49,14 @@ function Compras() {
   };
 
   useEffect(() => {
-    carregarCompras();
+    carregarComprasT();
     carregarSaldo();
     atualizarRastreio();
   }, []);
+
+  useEffect(() => {
+  setCompras(comprasT);
+}, [comprasT]);
 
   const handleMarcarComoPago = async (compraId) => {
     try {
@@ -68,7 +66,7 @@ function Compras() {
       );
       setMessage(`Compra ${compraId} marcada como 'Pago'.`);
       await carregarSaldo(); 
-      await carregarCompras();
+      await carregarComprasT();
     } catch (err) {
       setError(`Erro ao marcar compra como paga.`);
     }
@@ -81,7 +79,7 @@ function Compras() {
         setCompras((prev) =>
           prev.map((c) => (c.id === compraId ? atualizada : c))
         );
-        await carregarCompras();
+        await carregarComprasT();
         setMessage(`Compra ${compraId} cancelado com sucesso.`);
       } catch (err) {
         setError(`Erro ao cancelar compra.`);
@@ -97,7 +95,7 @@ function Compras() {
       if (compra.codigo_etiqueta) {
         await gerarEtiqueta([compra.codigo_etiqueta]);
         setMessage("Etiqueta gerada com sucesso!");
-        carregarCompras(); 
+        carregarComprasT(); 
       } else {
         alert("Código de etiqueta não disponível para esta compra.");
       }
@@ -125,7 +123,7 @@ function Compras() {
     try {
       await gerarEtiqueta(etiquetasParaGerar);
       setMessage("Etiquetas em lote geradas com sucesso!");
-      carregarCompras();
+      carregarComprasT();
     } catch (err) {
       console.error("Erro ao gerar etiquetas em lote:", err);
       alert("Erro ao gerar etiquetas em lote.");
@@ -134,14 +132,14 @@ function Compras() {
 
   const abrirPagamentoPix = async () =>{
     const saldosC = await obterSaldoMelhorEnvio()
+    
     if(saldosC.saldo >= saldosC.Frete){
-    console.log(saldosC.saldo >= saldosC.Frete)
     setVerificandoPagamento(true);
     }else{
       const pix = await gerarPixParaCarrinho();
       setPagamentoPix(pix);
     }
-    await carregarCompras();
+    await carregarComprasT();
     await carregarSaldo();
   }
 
@@ -155,7 +153,7 @@ function Compras() {
           setVerificandoPagamento(false);
           try {
             await comprarEtiqueta();
-            await carregarCompras(); 
+            await carregarComprasT(); 
             setMessage("Etiquetas compradas com sucesso! Agora você pode gerá-las.");
             setPagamentoPix(null);
           } catch (error) {
@@ -307,7 +305,25 @@ function Compras() {
           )}
         </div>
       </div>
-
+      
+      {pagamentoPix && (
+        <div className="alert alert-info">
+          <strong>Valor: R$ {pagamentoPix.valor}</strong>
+          <br />
+          <img
+            src={pagamentoPix.urlQrCodeImagem}
+            alt="QR Code PIX"
+            style={{ width: "200px", marginTop: 10 }}
+          />
+          <br />
+          <button
+            className="btn btn-outline-primary btn-sm mt-2"
+            onClick={() => navigator.clipboard.writeText(pagamentoPix.codigoParaCopiar)}
+          >
+            Copiar código PIX
+          </button>
+        </div>
+      )}
       <div className="mb-3">
         <input
           type="text"
@@ -408,7 +424,6 @@ function Compras() {
       <div className="p-4 border rounded-lg bg-gray-50 shadow-sm">
         <h5 className="text-lg font-semibold mb-2">
           🛍️ Detalhes da Compra #{compra.id}
-          {console.log(compra)}
         </h5>
 
         <p className="mb-1">
@@ -466,7 +481,7 @@ Qualquer dúvida, estou à disposição! Obrigada por escolher a Pink Bella. �
   className="px-3 py-1 text-sm btn btn-outline-primary rounded"
   onClick={() => {
     const numero = compra.cliente.telefone.replace(/\D/g, ''); // Remove tudo que não for número
-    console.log(numero);
+    
 
     const texto = `Olá ${compra.cliente.nome}, tudo bem? 💖
 
@@ -535,10 +550,12 @@ Qualquer dúvida, estou à disposição! Obrigada por escolher a Pink Bella. �
 
           <button
             className="px-3 py-1 text-sm btn btn-outline-primary rounded "
-            onClick={() => alert("Funcionalidade de detalhes da compra ainda não implementada.")}
+            onClick={() => navigate(`/compras/detalhe/${compra.id}`)}
           >
             🔍 Ver Detalhes Completos
           </button>
+          
+          
         </div>
       </div>
     </td>
