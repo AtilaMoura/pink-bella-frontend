@@ -807,6 +807,15 @@ Qualquer dúvida, estou à disposição! Obrigada por escolher a Pink Bella. �
                                         Marcar como Pago
                                       </button>
                                     )}
+
+                                    {!compra.codigo_etiqueta && (
+  <button
+    className="px-3 py-1 text-sm btn btn-outline-secondary rounded"
+      onClick={() => navigate(`/Compras/editar/${compra.id}`)}
+  >
+    Editar
+  </button>
+)}
                                     
                                     {compra.status_compra === "Aguardando Etiqueta" && (
                                       <button
