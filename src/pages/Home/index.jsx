@@ -1,429 +1,419 @@
-// src/pages/Home/index.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
+// Simulação do ThemeContext para evitar erro de importação externa no ambiente isolado.
+// Em um projeto real, esta importação seria: import { useTheme } from '../../context/ThemeContext.js';
+const useTheme = () => ({
+    currentTheme: {
+        primaryColor: '#ff69b4', // Exemplo de cor primária (Rosa)
+        secondaryColor: '#3498db', // Exemplo de cor secundária (Azul)
+        textColor: '#333333',
+        surfaceColor: '#ffffff',
+        backgroundColorSubtle: '#f8f9fa'
+    }
+}); 
+
+// --- SIMULAÇÃO DO CompraContext ATUALIZADA ---
+// A lista de compras T (comprasT) que seria fornecida pelo seu Contexto real,
+// usando a nova estrutura de dados real que você forneceu.
+const mockComprasT = [
+    {
+        id: 78,
+        cliente: { id: 2, nome: 'Irsa de Souza dos Santos' },
+        data_compra: '2025-10-18 19:38:08', // Simulando "Hoje"
+        status_compra: 'Postado', // Exemplo de status real
+        valor_total: 396.55,
+    },
+    {
+        id: 77,
+        cliente: { id: 26, nome: 'Doralice Camilo Vinoti' },
+        data_compra: '2025-10-17 19:37:24', // Simulando "Ontem"
+        status_compra: 'Em Envio',
+        valor_total: 337.01,
+    },
+    {
+        id: 76,
+        cliente: { id: 3, nome: 'Mariana Silva' },
+        data_compra: '2025-10-16 10:00:00',
+        status_compra: 'Pendente',
+        valor_total: 450.00,
+    },
+    {
+        id: 75,
+        cliente: { id: 4, nome: 'João Pedro' },
+        data_compra: '2025-10-15 15:30:00',
+        status_compra: 'Entregue',
+        valor_total: 120.50,
+    },
+    {
+        id: 74,
+        cliente: { id: 5, nome: 'Carla Moreira' },
+        data_compra: '2025-10-14 09:00:00',
+        status_compra: 'Cancelado',
+        valor_total: 98.90,
+    },
+];
+
+// Mocking the Context object itself
+const CompraContext = React.createContext(); 
+const useMockCompraContext = () => ({
+    comprasT: mockComprasT,
+    setComprasT: () => {}, 
+    carregarComprasT: () => {} 
+});
+// --- FIM DA SIMULAÇÃO ---
 
 function Home() {
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [animateCards, setAnimateCards] = useState(false);
+    // Usando o hook simulado de Tema
+    const { currentTheme } = useTheme(); 
+    
+    // INTEGRAÇÃO: Usando o hook simulado de CompraContext para acessar comprasT
+    // No seu projeto real, você usaria: const { comprasT } = useContext(CompraContext);
+    const { comprasT } = useMockCompraContext(); 
 
-  useEffect(() => {
-    // Atualiza o relógio a cada segundo
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
+    const [currentTime, setCurrentTime] = useState(new Date());
+    const [animateCards, setAnimateCards] = useState(false);
+    const [filterPeriod, setFilterPeriod] = useState('month'); // 'day', 'week', 'month', 'year'
 
-    // Anima os cards após carregamento
-    setTimeout(() => setAnimateCards(true), 300);
+    useEffect(() => {
+        // Atualiza o relógio a cada segundo
+        const timer = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 1000);
 
-    return () => clearInterval(timer);
-  }, []);
+        // Anima os cards após carregamento
+        setTimeout(() => setAnimateCards(true), 300);
 
-  const formatTime = (date) => {
-    return date.toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-  };
+        return () => clearInterval(timer);
+    }, []);
 
-  const formatDate = (date) => {
-    return date.toLocaleDateString('pt-BR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+    const formatTime = (date) => {
+        return date.toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    };
 
-  const cardData = [
-    {
-      icon: 'fas fa-users',
-      title: 'Gerenciar Clientes',
-      description: 'Cadastre, edite e visualize todas as informações dos seus clientes com facilidade.',
-      primaryLink: '/clientes',
-      primaryText: 'Ver Clientes',
-      secondaryLink: '/clientes/novo',
-      secondaryText: 'Novo Cliente',
-      gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      iconColor: 'text-primary',
-      delay: '0.1s'
-    },
-    {
-      icon: 'fas fa-shopping-cart',
-      title: 'Registrar Compras/Vendas',
-      description: 'Registre novas transações e acompanhe todo o histórico de compras dos seus clientes.',
-      primaryLink: '/compras',
-      primaryText: 'Ver Compras',
-      secondaryLink: '/clientes',
-      secondaryText: 'Nova Compra',
-      gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-      iconColor: 'text-success',
-      delay: '0.2s'
-    },
-    {
-      icon: 'fas fa-truck',
-      title: 'Calcular Frete',
-      description: 'Calcule opções de frete para qualquer CEP com base nos produtos selecionados.',
-      primaryLink: '/frete',
-      primaryText: 'Calcular Frete',
-      secondaryLink: null,
-      secondaryText: null,
-      gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-      iconColor: 'text-info',
-      delay: '0.3s'
-    }
-  ];
+    const formatDate = (date) => {
+        return date.toLocaleDateString('pt-BR', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+    };
+    
+    // Função para formatar o valor como moeda (BRL)
+    const formatCurrency = (value) => {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+            minimumFractionDigits: 2,
+        }).format(value);
+    };
 
-  return (
-    <div style={{ 
-      background: "linear-gradient(135deg, #FFE5E5 0%, #FFC5C5 50%, #FFB3BA 100%)",
-      minHeight: "100vh"
-    }}>
-      {/* Header Hero Section */}
-      <div className="container-fluid">
-        <div className="row">
-          <div className="col-12">
-            <div className="card shadow-lg border-0 mb-5" style={{ 
-              background: "linear-gradient(135deg, #FF69B4 0%, #FFB6C1 50%, #FFC0CB 100%)",
-              borderRadius: "0 0 30px 30px"
-            }}>
-              <div className="card-body text-white text-center py-5">
-                <div className="mb-4">
-                  <i className="fas fa-heart fa-3x mb-3" style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.3)" }}></i>
-                  <h1 className="display-3 fw-bold mb-3" style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.3)" }}>
-                    Bem-vindo ao Pink Bella CRM!
-                  </h1>
-                  <p className="lead fs-4 mb-4">
-                    Sua plataforma completa para gerenciar clientes, produtos e vendas com amor e profissionalismo.
-                  </p>
+    // Dados de exemplo para os Cards de Analytics
+    const analyticsData = [
+        {
+            icon: 'fas fa-money-bill-wave',
+            title: 'Faturamento Total',
+            value: 'R$ 15.450,80',
+            period: 'Este Mês',
+            // Cores dinâmicas para o gradiente
+            primaryColor: '#2ecc71', // Verde
+            secondaryColor: '#27ae60', 
+            delay: '0.1s'
+        },
+        {
+            icon: 'fas fa-shopping-bag',
+            title: 'Total de Vendas',
+            value: '189',
+            period: 'Este Mês',
+            // Usando a cor primária dinâmica do tema para o segundo card
+            primaryColor: currentTheme.primaryColor, // Usando cor simulada
+            secondaryColor: currentTheme.secondaryColor, // Usando cor simulada
+            delay: '0.2s'
+        },
+        {
+            icon: 'fas fa-users',
+            title: 'Novos Clientes',
+            value: '23',
+            period: 'Este Mês',
+            primaryColor: '#3498db', // Azul
+            secondaryColor: '#2980b9', 
+            delay: '0.3s'
+        },
+        {
+            icon: 'fas fa-box-open',
+            title: 'Produtos em Estoque',
+            value: '956',
+            period: 'Geral',
+            primaryColor: '#f1c40f', // Amarelo
+            secondaryColor: '#f39c12', 
+            delay: '0.4s'
+        },
+    ];
+
+    // DEFINIÇÃO DE DADOS: Agora utiliza comprasT do contexto, limitando aos 5 mais recentes.
+    const latestPurchases = comprasT.slice(0, 5);
+
+    // Função para determinar a cor do badge de status
+    const getStatusBadgeStyle = (status) => {
+        switch (status) {
+            case 'Pendente':
+                return { backgroundColor: '#ff9800', color: 'white' }; // Laranja
+            case 'Entregue':
+                return { backgroundColor: '#2ecc71', color: 'white' }; // Verde
+            case 'Em Envio':
+            case 'Postado': // Incluindo "Postado" nos dados reais
+                return { backgroundColor: '#3498db', color: 'white' }; // Azul
+            case 'Cancelado':
+                return { backgroundColor: '#e74c3c', color: 'white' }; // Vermelho
+            default:
+                return { backgroundColor: 'gray', color: 'white' };
+        }
+    };
+
+    // Função para formatar a data da compra (handle "YYYY-MM-DD HH:MM:SS" e mostrar "Hoje"/"Ontem")
+    const formatPurchaseDate = (dateTimeString) => {
+        // Pega apenas a parte da data "YYYY-MM-DD"
+        const datePart = dateTimeString.split(' ')[0]; 
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Calcula o dia de ontem
+        const yesterdayDate = new Date();
+        yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+        const yesterday = yesterdayDate.toISOString().split('T')[0];
+
+        if (datePart === today) return 'Hoje';
+        if (datePart === yesterday) return 'Ontem';
+
+        // Formata para DD/MM/AAAA
+        return new Date(datePart + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    };
+
+    // Estilos comuns reutilizáveis
+    const cardBaseStyle = {
+        borderRadius: "15px",
+        background: 'var(--surface-color)', // Fundo do Card
+        color: 'var(--text-color)', // Cor do Texto
+        boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+        transition: 'all 0.4s ease',
+        cursor: 'pointer'
+    };
+
+    return (
+        <div className="container-fluid py-4"> 
+            
+            {/* Título e Filtro */}
+            <div className="row mb-4 align-items-center">
+                <div className="col-md-6">
+                    <h1 className="fw-bold" style={{ color: 'var(--text-color)' }}>
+                        <i className="fas fa-tachometer-alt me-3" style={{ color: 'var(--primary-color)' }}></i>
+                        Dashboard Principal
+                    </h1>
                 </div>
                 
-                {/* Relógio e Data */}
-                <div className="row justify-content-center">
-                  <div className="col-md-6">
-                    <div className="card bg-white bg-opacity-20 border-0" style={{ borderRadius: "20px" }}>
-                      <div className="card-body py-3">
-                        <div className="row text-center">
-                          <div className="col-md-6">
-                            <i className="fas fa-clock me-2"></i>
-                            <span className="fs-5 fw-bold">{formatTime(currentTime)}</span>
-                          </div>
-                          <div className="col-md-6">
-                            <i className="fas fa-calendar me-2"></i>
-                            <span className="fs-6">{formatDate(currentTime)}</span>
-                          </div>
+                {/* Filtro de Período */}
+                <div className="col-md-6 text-md-end">
+                    <div className="btn-group" role="group" aria-label="Filtro de Período">
+                        {['day', 'week', 'month', 'year'].map((period) => (
+                            <button
+                                key={period}
+                                type="button"
+                                className={`btn fw-bold ${filterPeriod === period ? 'text-white' : 'btn-outline-secondary'}`}
+                                style={{
+                                    // Usa a cor primária para o botão ativo
+                                    backgroundColor: filterPeriod === period ? 'var(--primary-color)' : 'transparent',
+                                    borderColor: 'var(--primary-color)', // Borda Primária
+                                    color: filterPeriod === period ? 'white' : 'var(--primary-color)',
+                                    transition: 'all 0.3s',
+                                    borderRadius: '8px',
+                                    margin: '0 2px'
+                                }}
+                                onClick={() => setFilterPeriod(period)}
+                            >
+                                {period === 'day' && 'Dia'}
+                                {period === 'week' && 'Semana'}
+                                {period === 'month' && 'Mês'}
+                                {period === 'year' && 'Ano'}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Linha de Indicadores/Cards de Estatísticas */}
+            <div className="row g-4 mb-5">
+                {analyticsData.map((card, index) => (
+                    <div key={index} className="col-lg-3 col-md-6">
+                        <div 
+                            className={`card h-100 border-0 shadow-lg ${animateCards ? 'animate__animated animate__fadeIn' : ''}`}
+                            style={{ 
+                                ...cardBaseStyle,
+                                // Define a cor da borda esquerda usando a cor primária do card (ou a cor do tema, se for variável)
+                                borderLeft: `5px solid ${card.primaryColor.includes('var(') ? currentTheme.primaryColor : card.primaryColor}`, 
+                                transform: animateCards ? 'translateY(0)' : 'translateY(20px)',
+                                opacity: animateCards ? 1 : 0,
+                                transition: `all 0.4s ease ${card.delay}`,
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.5)'}
+                            onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)'}
+                        >
+                            <div className="card-body p-4">
+                                <div className="d-flex align-items-center">
+                                    <div className="flex-grow-1">
+                                        <p className="text-uppercase fw-semibold mb-1" style={{ fontSize: '0.9rem', color: card.primaryColor.includes('var(') ? currentTheme.primaryColor : card.primaryColor }}>
+                                            {card.title}
+                                        </p>
+                                        <h3 className="fw-bold mb-0" style={{ color: 'var(--text-color)' }}>
+                                            {card.value}
+                                        </h3>
+                                    </div>
+                                    <i 
+                                        className={`${card.icon} fa-3x`} 
+                                        style={{ color: card.secondaryColor.includes('var(') ? currentTheme.secondaryColor : card.secondaryColor, opacity: 0.8 }}
+                                    ></i>
+                                </div>
+                                <small className="text-muted mt-2 d-block">
+                                    Análise: {filterPeriod === 'day' ? 'Hoje' : card.period}
+                                </small>
+                            </div>
                         </div>
-                      </div>
                     </div>
-                  </div>
-                </div>
-              </div>
+                ))}
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Cards Section */}
-      <div className="container py-5">
-        <div className="row justify-content-center g-4">
-          {cardData.map((card, index) => (
-            <div key={index} className="col-lg-4 col-md-6">
-              <div 
-                className={`card h-100 border-0 shadow-lg position-relative overflow-hidden ${animateCards ? 'animate__animated animate__fadeInUp' : ''}`}
-                style={{ 
-                  borderRadius: "25px",
-                  transform: animateCards ? 'translateY(0)' : 'translateY(50px)',
-                  opacity: animateCards ? 1 : 0,
-                  transition: `all 0.6s ease ${card.delay}`,
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-10px) scale(1.02)';
-                  e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.15)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                  e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
-                }}
-              >
-                {/* Gradient Overlay */}
-                <div 
-                  className="position-absolute top-0 start-0 w-100 h-100 opacity-10"
-                  style={{ 
-                    background: card.gradient,
-                    borderRadius: "25px"
-                  }}
-                ></div>
+            {/* Relatório de Ações e Hora Atual */}
+            <div className="row g-4 mb-5">
                 
-                <div className="card-body text-center p-4 position-relative">
-                  {/* Icon */}
-                  <div className="mb-4">
+                {/* 1. Tabela de Últimas Compras (Dinâmico) */}
+                <div className="col-lg-8">
                     <div 
-                      className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                      style={{ 
-                        width: "80px", 
-                        height: "80px",
-                        background: card.gradient,
-                        boxShadow: "0 10px 30px rgba(0,0,0,0.2)"
-                      }}
+                        className="card h-100 border-0 shadow-lg"
+                        style={cardBaseStyle}
                     >
-                      <i className={`${card.icon} fa-2x text-white`}></i>
+                        <div 
+                            className="card-header border-0" 
+                            style={{ 
+                                // Cor Primária no cabeçalho
+                                background: 'var(--primary-color)', 
+                                color: 'white', 
+                                borderTopLeftRadius: '15px', 
+                                borderTopRightRadius: '15px' 
+                            }}>
+                            <h5 className="mb-0 fw-bold">
+                                <i className="fas fa-list-alt me-2"></i> Últimas Compras
+                            </h5>
+                        </div>
+                        <div className="card-body p-4">
+                            {/* A tabela agora é populada dinamicamente usando latestPurchases (que é um slice de comprasT) */}
+                            <table className="table table-striped table-hover" style={{ '--bs-table-bg': 'var(--surface-color)', '--bs-table-color': 'var(--text-color)', border: `1px solid var(--border-color)` }}>
+                                <thead>
+                                    <tr>
+                                        <th style={{ color: 'var(--primary-color)' }}>Cliente</th>
+                                        <th style={{ color: 'var(--primary-color)' }}>Data</th>
+                                        <th className="text-end" style={{ color: 'var(--primary-color)' }}>Valor Total</th>
+                                        <th style={{ color: 'var(--primary-color)' }}>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {latestPurchases.map((purchase) => (
+                                        <tr key={purchase.id}>
+                                            {/* Usando purchase.cliente.nome */}
+                                            <td className="fw-semibold">{purchase.cliente.nome}</td>
+                                            {/* Usando purchase.data_compra */}
+                                            <td className="text-muted"><i className="far fa-calendar-alt me-1"></i> {formatPurchaseDate(purchase.data_compra)}</td>
+                                            {/* Usando purchase.valor_total com formatação de moeda */}
+                                            <td className="fw-bold text-end">{formatCurrency(purchase.valor_total)}</td>
+                                            {/* Usando purchase.status_compra */}
+                                            <td>
+                                                <span 
+                                                    className="badge rounded-pill fw-bold py-2 px-3" 
+                                                    style={getStatusBadgeStyle(purchase.status_compra)}
+                                                >
+                                                    {purchase.status_compra}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            <Link 
+                                to="/compras" 
+                                className="btn btn-sm mt-3 fw-bold" 
+                                style={{ 
+                                    // Cor Secundária para o botão
+                                    backgroundColor: 'var(--secondary-color)', 
+                                    color: 'var(--surface-color)',
+                                    borderRadius: '10px'
+                                }}>
+                                Ver todas as Vendas <i className="fas fa-arrow-right ms-2"></i>
+                            </Link>
+                        </div>
                     </div>
-                  </div>
+                </div>
 
-                  {/* Title */}
-                  <h5 className="card-title fw-bold text-dark mb-3" style={{ fontSize: "1.3rem" }}>
-                    {card.title}
-                  </h5>
-
-                  {/* Description */}
-                  <p className="card-text text-muted mb-4" style={{ lineHeight: "1.6" }}>
-                    {card.description}
-                  </p>
-
-                  {/* Action Buttons */}
-                  <div className="d-flex flex-column gap-2">
-                    <Link 
-                      to={card.primaryLink} 
-                      className="btn btn-lg fw-bold text-white shadow-sm"
-                      style={{ 
-                        background: card.gradient,
-                        borderRadius: "15px",
-                        border: "none",
-                        transition: "all 0.3s ease"
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.transform = 'translateY(-2px)';
-                        e.target.style.boxShadow = '0 8px 25px rgba(0,0,0,0.2)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.transform = 'translateY(0)';
-                        e.target.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
-                      }}
+                {/* 2. Relógio e Ações Rápidas */}
+                <div className="col-lg-4">
+                    <div 
+                        className="card h-100 border-0 shadow-lg"
+                        style={cardBaseStyle}
                     >
-                      <i className={`${card.icon} me-2`}></i>
-                      {card.primaryText}
-                    </Link>
-                    
-                    {card.secondaryLink && (
-                      <Link 
-                        to={card.secondaryLink} 
-                        className="btn btn-outline-secondary fw-bold"
-                        style={{ 
-                          borderRadius: "15px",
-                          borderWidth: "2px",
-                          transition: "all 0.3s ease"
-                        }}
-                        onMouseEnter={(e) => {
-                          e.target.style.background = card.gradient;
-                          e.target.style.borderColor = 'transparent';
-                          e.target.style.color = 'white';
-                          e.target.style.transform = 'translateY(-2px)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.background = 'transparent';
-                          e.target.style.borderColor = '#6c757d';
-                          e.target.style.color = '#6c757d';
-                          e.target.style.transform = 'translateY(0)';
-                        }}
-                      >
-                        <i className="fas fa-plus me-2"></i>
-                        {card.secondaryText}
-                      </Link>
-                    )}
-                  </div>
+                        <div className="card-body text-center p-4">
+                            
+                            {/* Relógio e Data */}
+                            <div className="p-3 mb-4" style={{ backgroundColor: 'var(--background-color-subtle)', borderRadius: '10px' }}>
+                                <i className="fas fa-clock fa-3x mb-3" style={{ color: 'var(--primary-color)' }}></i>
+                                <h2 className="display-4 fw-bold" style={{ color: 'var(--text-color)' }}>{formatTime(currentTime)}</h2>
+                                <p className="lead" style={{ color: 'var(--secondary-color)' }}>{formatDate(currentTime)}</p>
+                            </div>
+                            
+                            {/* Ações Rápidas - Simplificado */}
+                            <h5 className="fw-bold mb-3" style={{ color: 'var(--text-color)' }}>
+                                Ações Rápidas
+                            </h5>
+                            <div className="d-grid gap-2">
+                                {/* Botão Principal (Nova Venda) usando Cor Primária */}
+                                <Link to="/compras" className="btn btn-lg fw-bold" style={{ backgroundColor: 'var(--primary-color)', color: 'white', borderRadius: '10px' }}>
+                                    <i className="fas fa-plus-circle me-2"></i> Nova Venda
+                                </Link>
+                                
+                                {/* Botão Secundário (Novo Cliente) usando Cor Secundária */}
+                                <Link to="/clientes/novo" className="btn btn-lg fw-bold" style={{ backgroundColor: 'var(--secondary-color)', color: 'var(--surface-color)', borderRadius: '10px' }}>
+                                    <i className="fas fa-user-plus me-2"></i> Novo Cliente
+                                </Link>
+                                
+                                {/* Botão de Contorno */}
+                                <Link 
+                                    to="/frete" 
+                                    className="btn btn-lg fw-bold btn-outline-light" 
+                                    style={{ 
+                                        borderColor: 'var(--primary-color)', 
+                                        color: 'var(--primary-color)',
+                                        borderRadius: '10px'
+                                    }}>
+                                    <i className="fas fa-truck me-2"></i> Calcular Frete
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-                {/* Decorative Elements */}
-                <div className="position-absolute top-0 end-0 p-3">
-                  <div 
-                    className="rounded-circle bg-white bg-opacity-20"
-                    style={{ width: "40px", height: "40px" }}
-                  ></div>
-                </div>
-                <div className="position-absolute bottom-0 start-0 p-3">
-                  <div 
-                    className="rounded-circle bg-white bg-opacity-10"
-                    style={{ width: "60px", height: "60px" }}
-                  ></div>
-                </div>
-              </div>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Statistics Section */}
-      <div className="container py-5">
-        <div className="row">
-          <div className="col-12">
-            <div className="card shadow-lg border-0" style={{ borderRadius: "25px" }}>
-              <div className="card-body p-5">
-                <div className="text-center mb-4">
-                  <h3 className="fw-bold text-dark mb-3">
-                    <i className="fas fa-chart-line me-3 text-primary"></i>
-                    Painel de Controle
-                  </h3>
-                  <p className="text-muted">Acompanhe o desempenho do seu negócio em tempo real</p>
+            {/* Espaço para Gráfico */}
+            <div className="row g-4 mb-5">
+                <div className="col-12">
+                     <div 
+                        className="card h-100 border-0 shadow-lg p-5 text-center"
+                        style={{ ...cardBaseStyle, border: '1px dashed var(--secondary-color)' }}
+                    >
+                        <h5 style={{ color: 'var(--text-color)' }}>Espaço para Gráfico de Vendas e Faturamento por Período.</h5>
+                        <p className="text-muted" style={{ color: 'var(--secondary-color)' }}>Use o filtro acima (Dia/Semana/Mês/Ano) para carregar os dados aqui.</p>
+                    </div>
                 </div>
-                
-                <div className="row g-4">
-                  <div className="col-md-3 col-sm-6">
-                    <div className="card border-0 h-100" style={{ 
-                      background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                      borderRadius: "20px"
-                    }}>
-                      <div className="card-body text-white text-center p-4">
-                        <i className="fas fa-users fa-2x mb-3"></i>
-                        <h4 className="fw-bold">127</h4>
-                        <p className="mb-0">Clientes Ativos</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="col-md-3 col-sm-6">
-                    <div className="card border-0 h-100" style={{ 
-                      background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-                      borderRadius: "20px"
-                    }}>
-                      <div className="card-body text-white text-center p-4">
-                        <i className="fas fa-shopping-cart fa-2x mb-3"></i>
-                        <h4 className="fw-bold">89</h4>
-                        <p className="mb-0">Vendas Este Mês</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="col-md-3 col-sm-6">
-                    <div className="card border-0 h-100" style={{ 
-                      background: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-                      borderRadius: "20px"
-                    }}>
-                      <div className="card-body text-white text-center p-4">
-                        <i className="fas fa-truck fa-2x mb-3"></i>
-                        <h4 className="fw-bold">156</h4>
-                        <p className="mb-0">Fretes Calculados</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="col-md-3 col-sm-6">
-                    <div className="card border-0 h-100" style={{ 
-                      background: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
-                      borderRadius: "20px"
-                    }}>
-                      <div className="card-body text-white text-center p-4">
-                        <i className="fas fa-heart fa-2x mb-3"></i>
-                        <h4 className="fw-bold">98%</h4>
-                        <p className="mb-0">Satisfação</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
-          </div>
         </div>
-      </div>
-
-      {/* Quick Actions Section */}
-      <div className="container py-5">
-        <div className="row">
-          <div className="col-12">
-            <div className="card shadow-lg border-0" style={{ borderRadius: "25px" }}>
-              <div className="card-body p-5">
-                <div className="text-center mb-4">
-                  <h3 className="fw-bold text-dark mb-3">
-                    <i className="fas fa-bolt me-3 text-warning"></i>
-                    Ações Rápidas
-                  </h3>
-                  <p className="text-muted">Acesse rapidamente as funcionalidades mais utilizadas</p>
-                </div>
-                
-                <div className="row g-3 justify-content-center">
-                  <div className="col-md-2 col-sm-4 col-6">
-                    <Link to="/clientes/novo" className="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3" style={{ borderRadius: "15px", minHeight: "100px" }}>
-                      <i className="fas fa-user-plus fa-2x mb-2"></i>
-                      <small className="fw-bold">Novo Cliente</small>
-                    </Link>
-                  </div>
-                  
-                  <div className="col-md-2 col-sm-4 col-6">
-                    <Link to="/compras" className="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3" style={{ borderRadius: "15px", minHeight: "100px" }}>
-                      <i className="fas fa-plus-circle fa-2x mb-2"></i>
-                      <small className="fw-bold">Nova Venda</small>
-                    </Link>
-                  </div>
-                  
-                  <div className="col-md-2 col-sm-4 col-6">
-                    <Link to="/frete" className="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3" style={{ borderRadius: "15px", minHeight: "100px" }}>
-                      <i className="fas fa-calculator fa-2x mb-2"></i>
-                      <small className="fw-bold">Calcular Frete</small>
-                    </Link>
-                  </div>
-                  
-                  <div className="col-md-2 col-sm-4 col-6">
-                    <Link to="/clientes" className="btn btn-outline-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3" style={{ borderRadius: "15px", minHeight: "100px" }}>
-                      <i className="fas fa-search fa-2x mb-2"></i>
-                      <small className="fw-bold">Buscar Cliente</small>
-                    </Link>
-                  </div>
-                  
-                  <div className="col-md-2 col-sm-4 col-6">
-                    <Link to="/compras" className="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3" style={{ borderRadius: "15px", minHeight: "100px" }}>
-                      <i className="fas fa-chart-bar fa-2x mb-2"></i>
-                      <small className="fw-bold">Relatórios</small>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <footer className="py-5">
-        <div className="container">
-          <div className="row">
-            <div className="col-12">
-              <div className="card shadow-sm border-0" style={{ 
-                background: "linear-gradient(135deg, #FFB6C1 0%, #FFC0CB 100%)",
-                borderRadius: "25px"
-              }}>
-                <div className="card-body text-center py-4">
-                  <div className="mb-3">
-                    <i className="fas fa-heart fa-2x text-danger mb-3"></i>
-                  </div>
-                  <h5 className="text-dark fw-bold mb-2">
-                    Pink Bella CRM - Gestão com Amor e Profissionalismo
-                  </h5>
-                  <p className="text-muted mb-3">
-                    Simplifique sua gestão e encante seus clientes com nossa plataforma completa.
-                  </p>
-                  <div className="d-flex justify-content-center gap-3">
-                    <div className="badge bg-white text-dark px-3 py-2" style={{ borderRadius: "15px" }}>
-                      <i className="fas fa-shield-alt me-2"></i>
-                      Seguro
-                    </div>
-                    <div className="badge bg-white text-dark px-3 py-2" style={{ borderRadius: "15px" }}>
-                      <i className="fas fa-rocket me-2"></i>
-                      Rápido
-                    </div>
-                    <div className="badge bg-white text-dark px-3 py-2" style={{ borderRadius: "15px" }}>
-                      <i className="fas fa-heart me-2"></i>
-                      Intuitivo
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
+    );
 }
 
 export default Home;
-
